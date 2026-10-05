@@ -1,0 +1,33 @@
+name: 每日自動更新多空排行
+
+on:
+  schedule:
+    # 台灣時間週一至週五下午 18:30 (UTC 時間 10:30)
+    - cron: '30 10 * * 1-5'
+  workflow_dispatch: # 支援手動按按鈕立刻執行
+
+jobs:
+  run-crawler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Python 環境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安裝套件
+        run: pip install requests
+
+      - name: 執行分析
+        run: python run.py
+
+      - name: 自動儲存更新
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add data.json
+          git commit -m "Auto update daily data" || exit 0
+          git push
